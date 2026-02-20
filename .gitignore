@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+data/
+
+.env
+.ruff_cache/
+projects/
+audio.m4a
+video.mp4
+voiceover_script_timestamps_refined_shorter.txt
+New Text Document.txt
+.claude/

@@ -1,0 +1,501 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/vo-demo-project.schema.json",
+  "title": "Voiceover Demo Project",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "project_id", "created_at", "source", "settings", "exports"],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["1.0.0", "1.1.0", "1.2.0", "2.0.0"] },
+    "project_id": { "type": "string", "minLength": 8 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" },
+
+    "app": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" },
+        "git_commit": { "type": "string" }
+      }
+    },
+
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "os": { "type": "string" },
+        "ffmpeg_version": { "type": "string" },
+        "python_version": { "type": "string" },
+        "pip_freeze": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["video"],
+      "properties": {
+        "video": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256", "duration_ms"],
+          "properties": {
+            "path": { "type": "string" },
+            "sha256": { "type": "string", "pattern": "^[a-fA-F0-9]{64}$" },
+            "duration_ms": { "type": "integer", "minimum": 1 },
+            "width": { "type": "integer", "minimum": 1 },
+            "height": { "type": "integer", "minimum": 1 },
+            "fps": { "type": "number", "exclusiveMinimum": 0 },
+            "has_audio": { "type": "boolean" }
+          }
+        },
+        "proxy_video": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "path": { "type": "string" },
+            "sha256": { "type": "string", "pattern": "^[a-fA-F0-9]{64}$" },
+            "analysis_fps": { "type": "number", "exclusiveMinimum": 0 },
+            "width": { "type": "integer", "minimum": 1 },
+            "height": { "type": "integer", "minimum": 1 }
+          }
+        }
+      }
+    },
+
+    "settings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["segmentation", "models", "narration", "tts"],
+      "properties": {
+        "segmentation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["analysis_fps", "min_seg_ms", "max_seg_ms"],
+          "properties": {
+            "analysis_fps": { "type": "number", "minimum": 1, "maximum": 30 },
+            "min_seg_ms": { "type": "integer", "minimum": 250 },
+            "max_seg_ms": { "type": "integer", "minimum": 500 },
+            "merge_rule": { "type": "string" },
+            "diff_method": { "type": "string", "enum": ["frame_diff_energy", "ssim_delta", "hybrid"] },
+            "ocr_delta_enabled": { "type": "boolean" }
+          }
+        },
+
+        "models": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["vision", "rewrite"],
+          "properties": {
+            "vision": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["provider", "model"],
+              "properties": {
+                "provider": { "type": "string", "enum": ["zai_openai_compat"] },
+                "base_url": { "type": "string" },
+                "model": { "type": "string" },
+                "temperature": { "type": "number", "minimum": 0, "maximum": 2 },
+                "thinking": { "type": "string", "enum": ["enabled", "disabled"] }
+              }
+            },
+            "rewrite": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["provider", "model"],
+              "properties": {
+                "provider": { "type": "string", "enum": ["zai_openai_compat"] },
+                "base_url": { "type": "string" },
+                "model": { "type": "string" },
+                "temperature": { "type": "number", "minimum": 0, "maximum": 2 }
+              }
+            }
+          }
+        },
+
+        "narration": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["wps", "min_words", "max_words"],
+          "properties": {
+            "wps": { "type": "number", "minimum": 1.0, "maximum": 4.0 },
+            "min_words": { "type": "integer", "minimum": 1, "maximum": 50 },
+            "max_words": { "type": "integer", "minimum": 1, "maximum": 60 },
+            "style": { "type": "string" }
+          }
+        },
+        "demo_context": { "type": "string" },
+        "demo_capture_execution_mode": {
+          "type": "string",
+          "enum": ["playwright_optional", "playwright_required"]
+        },
+
+        "tts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["provider", "endpoint"],
+          "properties": {
+            "provider": { "type": "string", "enum": ["chatterbox"] },
+            "endpoint": { "type": "string" },
+            "voice_mode": { "type": "string", "enum": ["predefined_voice", "reference_audio"] },
+            "predefined_voice_id": { "type": "string" },
+            "reference_audio_path": { "type": "string" },
+            "default_params": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "speed_factor": { "type": "number", "minimum": 0.5, "maximum": 2.0 },
+                "temperature": { "type": "number", "minimum": 0, "maximum": 2 },
+                "exaggeration": { "type": "number", "minimum": 0, "maximum": 2 },
+                "cfg_weight": { "type": "number", "minimum": 0, "maximum": 2 },
+                "seed": { "type": "integer", "minimum": 0 },
+                "language_id": { "type": "string" },
+                "output_format": { "type": "string", "enum": ["wav", "opus"] }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "planning": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "narration_global": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status"],
+          "properties": {
+            "status": { "type": "string" },
+            "summary": { "type": "string" },
+            "segments": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["segment_id", "narrative_goal", "transition_hint", "must_include_terms", "preferred_candidate_index"],
+                "properties": {
+                  "segment_id": { "type": "integer", "minimum": 0 },
+                  "narrative_goal": { "type": "string" },
+                  "transition_hint": { "type": "string" },
+                  "must_include_terms": { "type": "array", "items": { "type": "string" } },
+                  "preferred_candidate_index": { "type": "integer", "minimum": 0 }
+                }
+              }
+            },
+            "artifact_payload_path": { "type": "string" },
+            "artifact_raw_path": { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "segments": {
+      "type": "array",
+      "minItems": 0,
+      "items": { "$ref": "#/$defs/segment" }
+    },
+
+    "timeline": { "$ref": "#/$defs/timeline" },
+
+    "tts_profiles": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/tts_profile" }
+    },
+
+    "renders": { "$ref": "#/$defs/renders" },
+
+    "demo": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "last_run_id": { "type": ["string", "null"] },
+        "runs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/demo_run_record" }
+        }
+      }
+    },
+
+    "exports": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifacts"],
+      "properties": {
+        "artifacts": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "script_srt_path": { "type": "string" },
+            "narration_mix_wav_path": { "type": "string" },
+            "final_mp4_path": { "type": "string" },
+            "final_mp4_with_captions_path": { "type": "string" }
+          }
+        },
+        "ffmpeg": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "commands": { "type": "array", "items": { "type": "string" } },
+            "filter_complex_script_path": { "type": "string" }
+          }
+        },
+        "exported_at": { "type": "string", "format": "date-time" }
+      }
+    },
+
+    "compliance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "voice_rights_confirmed": { "type": "boolean" },
+        "notes": { "type": "string" }
+      }
+    }
+  },
+
+  "$defs": {
+    "timeline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["timeline_version", "narration_events", "action_events"],
+      "properties": {
+        "timeline_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" },
+        "narration_events": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/narration_event" }
+        },
+        "action_events": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/action_event" }
+        }
+      }
+    },
+
+    "narration_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "start_ms", "end_ms", "text"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "start_ms": { "type": "integer", "minimum": 0 },
+        "end_ms": { "type": "integer", "minimum": 0 },
+        "text": { "type": "string" },
+        "voice_profile_id": { "type": "string", "minLength": 1 },
+        "meta": { "type": "object", "additionalProperties": true }
+      }
+    },
+
+    "action_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "at_ms", "action"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "at_ms": { "type": "integer", "minimum": 0 },
+        "action": { "type": "string", "minLength": 1 },
+        "target": { "type": "string" },
+        "timeout_ms": { "type": "integer", "minimum": 100, "maximum": 120000 },
+        "retries": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "args": { "type": "object", "additionalProperties": true }
+      }
+    },
+
+    "tts_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile_id", "provider", "voice_mode", "params"],
+      "properties": {
+        "profile_id": { "type": "string", "minLength": 1 },
+        "display_name": { "type": "string" },
+        "provider": { "type": "string" },
+        "endpoint": { "type": "string" },
+        "voice_mode": { "type": "string", "enum": ["predefined_voice", "reference_audio"] },
+        "predefined_voice_id": { "type": "string" },
+        "audio_prompt_path": { "type": "string" },
+        "params": { "type": "object", "additionalProperties": true }
+      }
+    },
+
+    "renders": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["history"],
+      "properties": {
+        "last_render_id": { "type": ["string", "null"] },
+        "history": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/render_record" }
+        }
+      }
+    },
+
+    "render_record": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["render_id", "created_at", "status"],
+      "properties": {
+        "render_id": { "type": "string", "minLength": 1 },
+        "created_at": { "type": "string", "format": "date-time" },
+        "status": { "type": "string" },
+        "mode": { "type": "string" },
+        "stage_timings_ms": { "type": "object", "additionalProperties": true },
+        "error_summary": { "type": "object", "additionalProperties": true },
+        "correlation": { "type": "object", "additionalProperties": true }
+      }
+    },
+
+    "demo_run_record": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["project_id", "mode", "actions_total", "actions_executed"],
+      "properties": {
+        "run_id": { "type": "string" },
+        "project_id": { "type": "string" },
+        "mode": { "type": "string" },
+        "queue_job_id": { "type": ["string", "null"] },
+        "execution_mode": {
+          "type": "string",
+          "enum": ["playwright_optional", "playwright_required"]
+        },
+        "raw_demo_mp4": { "type": ["string", "null"] },
+        "actions_total": { "type": "integer", "minimum": 0 },
+        "actions_executed": { "type": "integer", "minimum": 0 },
+        "logs_path": { "type": "string" },
+        "artifacts_dir": { "type": "string" },
+        "error": { "type": "string" },
+        "stage_timings_ms": { "type": "object", "additionalProperties": true },
+        "execution_summary": { "type": "object", "additionalProperties": true },
+        "error_summary": { "type": "object", "additionalProperties": true },
+        "artifact_summary": { "type": "object", "additionalProperties": true },
+        "debug_artifacts": { "type": "object", "additionalProperties": true },
+        "recording_profile": { "type": "object", "additionalProperties": true },
+        "correlation": { "type": "object", "additionalProperties": true },
+        "history_limit": { "type": "integer", "minimum": 1 },
+        "dependency_status": { "type": "object", "additionalProperties": true },
+        "created_at": { "type": "string", "format": "date-time" }
+      }
+    },
+
+    "segment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "start_ms", "end_ms", "keyframes", "vision", "narration", "tts"],
+      "properties": {
+        "id": { "type": "integer", "minimum": 0 },
+        "start_ms": { "type": "integer", "minimum": 0 },
+        "end_ms": { "type": "integer", "minimum": 1 },
+
+        "keyframes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "t_ms", "path", "sha256"],
+            "properties": {
+              "kind": { "type": "string", "enum": ["start", "peak", "end"] },
+              "t_ms": { "type": "integer", "minimum": 0 },
+              "path": { "type": "string" },
+              "sha256": { "type": "string", "pattern": "^[a-fA-F0-9]{64}$" },
+              "width": { "type": "integer", "minimum": 1 },
+              "height": { "type": "integer", "minimum": 1 }
+            }
+          }
+        },
+
+        "vision": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status"],
+          "properties": {
+            "status": { "type": "string", "enum": ["not_started", "ok", "error"] },
+            "model": { "type": "string" },
+            "request_payload_path": { "type": "string" },
+            "raw_response_path": { "type": "string" },
+            "event_json": { "type": "object" },
+            "error": { "type": "string" }
+          }
+        },
+
+        "narration": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["target_words", "selected_text", "history"],
+          "properties": {
+            "target_words": { "type": "integer", "minimum": 1, "maximum": 60 },
+            "selected_text": { "type": "string" },
+            "pause_hint_ms": { "type": "integer", "minimum": 0, "maximum": 400 },
+            "history": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["source", "text", "created_at"],
+                "properties": {
+                  "source": { "type": "string", "enum": ["glm_4_6v_candidates", "glm_5_rewrite", "user_edit"] },
+                  "text": { "type": "string" },
+                  "word_count": { "type": "integer", "minimum": 0 },
+                  "created_at": { "type": "string", "format": "date-time" },
+                  "request_payload_path": { "type": "string" },
+                  "raw_response_path": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+
+        "tts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "audio_path", "attempts"],
+          "properties": {
+            "status": { "type": "string", "enum": ["not_started", "ok", "error"] },
+            "audio_path": { "type": "string" },
+            "audio_sha256": { "type": "string", "pattern": "^[a-fA-F0-9]{64}$" },
+            "audio_duration_ms": { "type": "integer", "minimum": 0 },
+            "attempts": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["created_at", "text", "params", "result"],
+                "properties": {
+                  "created_at": { "type": "string", "format": "date-time" },
+                  "text": { "type": "string" },
+                  "params": { "type": "object" },
+                  "result": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["status"],
+                    "properties": {
+                      "status": { "type": "string", "enum": ["ok", "error"] },
+                      "audio_path": { "type": "string" },
+                      "audio_duration_ms": { "type": "integer", "minimum": 0 },
+                      "error": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+
+        "mixing": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "timeline_start_ms": { "type": "integer", "minimum": 0 },
+            "gain_db": { "type": "number" },
+            "fade_in_ms": { "type": "integer", "minimum": 0, "maximum": 500 },
+            "fade_out_ms": { "type": "integer", "minimum": 0, "maximum": 500 }
+          }
+        }
+      }
+    }
+  }
+}

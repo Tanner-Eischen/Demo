@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/timeline.schema.json",
+  "title": "Demo Timeline",
+  "description": "Shared timeline contract for narration synthesis and scripted demo actions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["timeline_version", "narration_events", "action_events"],
+  "properties": {
+    "timeline_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$"
+    },
+    "narration_events": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/narration_event" }
+    },
+    "action_events": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/action_event" }
+    }
+  },
+  "$defs": {
+    "narration_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "start_ms", "end_ms", "text"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "start_ms": { "type": "integer", "minimum": 0 },
+        "end_ms": { "type": "integer", "minimum": 0 },
+        "text": { "type": "string" },
+        "voice_profile_id": { "type": "string", "minLength": 1, "default": "default" },
+        "meta": {
+          "type": "object",
+          "default": {},
+          "additionalProperties": true
+        }
+      }
+    },
+    "action_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "at_ms", "action"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "at_ms": { "type": "integer", "minimum": 0 },
+        "action": { "type": "string", "minLength": 1 },
+        "target": { "type": "string" },
+        "timeout_ms": { "type": "integer", "minimum": 100, "maximum": 120000 },
+        "retries": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "args": {
+          "type": "object",
+          "default": {},
+          "additionalProperties": true
+        }
+      }
+    }
+  }
+}

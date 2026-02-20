@@ -1,0 +1,52 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      args:
+        - INSTALL_PLAYWRIGHT=${INSTALL_PLAYWRIGHT:-0}
+    env_file: .env
+    environment:
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - RQ_QUEUE=${RQ_QUEUE:-default}
+      - DATA_DIR=/data
+      - DEMO_CAPTURE_EXECUTION_MODE=${DEMO_CAPTURE_EXECUTION_MODE:-playwright_optional}
+    volumes:
+      - ./data:/data
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+
+  worker:
+    build:
+      context: .
+      dockerfile: worker/Dockerfile
+      args:
+        - INSTALL_PLAYWRIGHT=${INSTALL_PLAYWRIGHT:-0}
+    env_file: .env
+    environment:
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - RQ_QUEUE=${RQ_QUEUE:-default}
+      - DATA_DIR=/data
+      - DEMO_CAPTURE_EXECUTION_MODE=${DEMO_CAPTURE_EXECUTION_MODE:-playwright_optional}
+    volumes:
+      - ./data:/data
+    depends_on:
+      - redis
+
+  # Optional: add your own TTS service here and point TTS_ENDPOINT at it.
+  # tts:
+  #   image: your-tts-image
+  #   ports:
+  #     - "5001:5001"
+
+volumes:
+  redis_data:
