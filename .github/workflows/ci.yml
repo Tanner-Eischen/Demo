@@ -47,7 +47,7 @@ jobs:
 
       - name: Docker Compose smoke (fallback profile)
         run: |
-          CI_SMOKE_PROFILE=fallback ./scripts/ci_smoke.sh
+          CI_SMOKE_PROFILE=fallback bash ./scripts/ci_smoke.sh
 
   docker-compose-smoke-playwright:
     if: ${{ vars.CI_PLAYWRIGHT_SMOKE == '1' || github.event.inputs.playwright_smoke == 'true' }}
@@ -60,4 +60,4 @@ jobs:
           CI_SMOKE_PROFILE=playwright \
           INSTALL_PLAYWRIGHT=1 \
           DEMO_CAPTURE_EXECUTION_MODE=playwright_required \
-          ./scripts/ci_smoke.sh
+          bash ./scripts/ci_smoke.sh
