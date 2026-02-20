@@ -45,6 +45,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Ensure smoke script executable
+        run: chmod +x ./scripts/ci_smoke.sh
+
       - name: Docker Compose smoke (fallback profile)
         run: |
           CI_SMOKE_PROFILE=fallback bash ./scripts/ci_smoke.sh
@@ -54,6 +57,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Ensure smoke script executable
+        run: chmod +x ./scripts/ci_smoke.sh
 
       - name: Docker Compose smoke (Playwright profile)
         run: |
