@@ -11,3 +11,7 @@ video.mp4
 voiceover_script_timestamps_refined_shorter.txt
 New Text Document.txt
 .claude/
+tts_server/venv/
+vision_server/venv/
+vision_server/node_modules/
+vision_server/uploads/
